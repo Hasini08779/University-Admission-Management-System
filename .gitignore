@@ -1,0 +1,34 @@
+# Environment variables / secrets
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# Uploaded files / user data
+uploads/
+**/uploads/
+backend/routes/uploads/
+
+# Local JSON data containing user information
+students.json
+**/students.json
+applications.json
+**/applications.json
+
+# Temporary files
+*.tmp
+*.temp
+
+# Local development files
+STARTUP_GUIDE.md
+\# Code Citations.md

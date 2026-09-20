@@ -1,0 +1,10 @@
+{
+  "name": "university-admission-system-full",
+  "version": "1.0.0",
+  "description": "Full University Admission System",
+  "scripts": {
+    "start-backend": "cd backend && npm start",
+    "dev-backend": "cd backend && npm run dev",
+    "seed": "cd backend && node seed.js"
+  }
+}

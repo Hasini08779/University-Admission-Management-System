@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Login & Registration</title>
+  <style>
+    * { box-sizing: border-box; font-family: Arial; }
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .card {
+      background: #fff;
+      padding: 40px;
+      border-radius: 15px;
+      width: 400px;
+      max-width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    h2 { margin-bottom: 20px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #667eea;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .link {
+      display: block;
+      margin-top: 10px;
+      color: #667eea;
+      cursor: pointer;
+      text-align: center;
+    }
+    .hidden { display: none; }
+    .small { font-size: 12px; text-align: left; color: #777; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- LOGIN SECTION -->
+  <div id="loginSection">
+    <h2>🎓 Login</h2>
+
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <input type="checkbox" id="showLoginPass"> Show Password 
+
+    <button class="btn" onclick="login()">Login</button>
+
+    <span class="link" onclick="showForgot()">Forgot Password?</span>
+    <span class="link" onclick="showRegister()">Create Account</span>
+  </div>
+
+  <!-- REGISTER SECTION -->
+  <div id="registerSection" class="hidden">
+    <h2>📝 Student Registration</h2>
+
+    <input type="text" id="regName" placeholder="Full Name*">
+    <input type="email" id="regEmail" placeholder="Email Address*">
+    <input type="tel" id="regMobile" placeholder="Mobile Number*">
+    <input type="password" id="regPassword" placeholder="Password*">
+    <input type="checkbox" id="showRegPass"> Show Password
+    <p class="small">Password: 8+ chars, 1 uppercase, 1 number, 1 symbol</p>
+
+    <button class="btn" onclick="register()">Register & Continue</button>
+    <span class="link" onclick="showLogin()">Back to Login</span>
+  </div>
+
+  <!-- FORGOT PASSWORD SECTION -->
+  <div id="forgotSection" class="hidden">
+    <h2>📱 Reset via OTP</h2>
+
+    <input type="text" id="mobileNumber" placeholder="Registered Mobile">
+    <button class="btn" onclick="sendOTP()">Send OTP</button>
+
+    <div id="otpSection" class="hidden">
+      <input type="text" id="otpInput" placeholder="Enter OTP">
+      <input type="password" id="newPassword" placeholder="New Password">
+      <input type="password" id="confirmPassword" placeholder="Confirm Password">
+      <input type="checkbox" id="showNewPass"> Show Password
+      <button class="btn" onclick="resetPassword()">Update Password</button>
+    </div>
+
+    <span class="link" onclick="showLogin()">Back</span>
+  </div>
+
+</div>
+
+<script>
+  // Elements
+  const loginSection = document.getElementById("loginSection");
+  const registerSection = document.getElementById("registerSection");
+  const forgotSection = document.getElementById("forgotSection");
+
+  const showLoginPass = document.getElementById("showLoginPass");
+  const loginPassword = document.getElementById("loginPassword");
+
+  const showRegPass = document.getElementById("showRegPass");
+  const regPassword = document.getElementById("regPassword");
+
+  const showNewPass = document.getElementById("showNewPass");
+  const newPassword = document.getElementById("newPassword");
+  const confirmPassword = document.getElementById("confirmPassword");
+
+  // SWITCH SECTIONS
+  function hideAll(){
+    loginSection.classList.add("hidden");
+    registerSection.classList.add("hidden");
+    forgotSection.classList.add("hidden");
+  }
+  function showRegister(){ hideAll(); registerSection.classList.remove("hidden"); }
+  function showLogin(){ hideAll(); loginSection.classList.remove("hidden"); }
+  function showForgot(){ hideAll(); forgotSection.classList.remove("hidden"); }
+
+  // SHOW PASSWORD TOGGLE
+  showLoginPass.onchange = ()=> loginPassword.type = showLoginPass.checked?"text":"password";
+  showRegPass.onchange = ()=> regPassword.type = showRegPass.checked?"text":"password";
+  showNewPass.onchange = ()=>{
+    newPassword.type = showNewPass.checked?"text":"password";
+    confirmPassword.type = showNewPass.checked?"text":"password";
+  };
+
+  // PASSWORD VALIDATION
+  function isValidPassword(p){
+    return /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(p);
+  }
+
+  // REGISTER FUNCTION
+  async function register(){
+    let name = document.getElementById("regName").value.trim();
+    let email = document.getElementById("regEmail").value.trim().toLowerCase();
+    let mobile = document.getElementById("regMobile").value.trim().replace(/\D/g, "");
+    let password = regPassword.value.trim();
+
+    if(!name || !email || !mobile || !password){
+      alert("❌ Please fill all required fields");
+      return;
+    }
+
+    if(!/^[0-9]{10}$/.test(mobile)){
+      alert("❌ Mobile number must be exactly 10 digits");
+      return;
+    }
+
+    if(!isValidPassword(password)){
+      alert("❌ Password must be 8+ chars, 1 uppercase, 1 number, 1 symbol");
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5001/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone: mobile,
+          password
+        })
+      });
+
+      const data = await response.json();
+
+      if(!response.ok){
+        alert("❌ " + (data.message || "Registration failed"));
+        return;
+      }
+
+      alert("✅ Registered successfully! Please login now.");
+      showLogin();
+      document.getElementById("loginEmail").value = email;
+    } catch(error) {
+      console.error("Registration error:", error);
+      alert("❌ Error during registration. Please try again.");
+    }
+  }
+
+  // LOGIN FUNCTION
+  async function login(){
+    let email = document.getElementById("loginEmail").value.trim().toLowerCase();
+    let password = loginPassword.value.trim();
+
+    if (!email && !password) {
+      alert("Please enter your email and password to log in.");
+      return;
+    }
+
+    if (!email) {
+      alert("Please enter your email address.");
+      return;
+    }
+
+    if (!password) {
+      alert("Please enter your password.");
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if(!response.ok){
+        alert("❌ " + (data.message || "Login failed"));
+        return;
+      }
+
+      // Save token and user info
+      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("currentUser", JSON.stringify(data.user));
+      localStorage.setItem("studentId", data.user._id || data.user.id); // Store ID separately as backup
+      
+      alert("✅ Login successful!");
+      window.location.href = "dashboard.html";
+    } catch(error) {
+      console.error("Login error:", error);
+      alert("❌ Error during login. Please try again.");
+    }
+  }
+
+  // OTP RESET
+  let generatedOTP=""; 
+  function sendOTP(){
+    let mobile = document.getElementById("mobileNumber").value.trim();
+    mobile = mobile.replace(/\D/g, "");
+
+    if (!/^[0-9]{10}$/.test(mobile)) {
+      alert("❌ Mobile number must be exactly 10 digits.");
+      return;
+    }
+
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    let user = users.find(u => u.mobile === mobile || u.phone === mobile);
+    if(!user){
+      alert("❌ No account found with that mobile number.");
+      return;
+    }
+
+    generatedOTP = Math.floor(100000 + Math.random()*900000).toString();
+    alert("📩 OTP: "+generatedOTP);
+
+    document.getElementById("otpSection").classList.remove("hidden");
+  }
+
+  function resetPassword(){
+    let mobile = document.getElementById("mobileNumber").value.trim();
+    mobile = mobile.replace(/\D/g, "");
+    let otp = document.getElementById("otpInput").value.trim();
+    let newPassVal = newPassword.value.trim();
+    let confirmPassVal = confirmPassword.value.trim();
+
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    let user = users.find(u => u.mobile === mobile || u.phone === mobile);
+
+    if(otp !== generatedOTP){ alert("❌ Wrong OTP"); return; }
+    if(newPassVal !== confirmPassVal){ alert("❌ Password mismatch"); return; }
+    if(!user){ alert("❌ No account found with that mobile number."); return; }
+
+    user.password = newPassVal;
+    if(!user.mobile) user.mobile = mobile;
+    localStorage.setItem("users", JSON.stringify(users));
+
+    document.getElementById("otpInput").value = "";
+    newPassword.value = "";
+    confirmPassword.value = "";
+
+    alert("✅ Password updated");
+    showLogin();
+  }
+
+</script>
+
+</body>
+</html>

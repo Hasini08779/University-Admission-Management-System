@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login - University Admission System</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .login-container { background: rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); width: 100%; max-width: 400px; text-align: center; }
+        .login-container h2 { margin-bottom: 20px; font-size: 28px; }
+        .login-container input { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 8px; font-size: 16px; }
+        .login-container button { width: 100%; padding: 12px; margin-top: 20px; border: none; border-radius: 8px; background: #667eea; color: white; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .login-container button:hover { background: #5563c1; }
+        .error { color: #e74c3c; margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Admin Login</h2>
+        <input type="email" id="adminEmail" placeholder="Admin Email" required>
+        <input type="password" id="adminPassword" placeholder="Password" required>
+        <label><input type="checkbox" id="showPassword"> Show Password</label>
+        <button onclick="adminLogin()">Login</button>
+        <div id="errorMsg" class="error"></div>
+    </div>
+
+    <script>
+        // Show/Hide Password Toggle
+        document.getElementById('showPassword').addEventListener('change', function() {
+            const passwordInput = document.getElementById('adminPassword');
+            passwordInput.type = this.checked ? 'text' : 'password';
+        });
+
+        function adminLogin() {
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            errorMsg.textContent = '';
+
+            if (!email) {
+                errorMsg.textContent = 'Please enter your email.';
+                return;
+            }
+            if (!password) {
+                errorMsg.textContent = 'Please enter your password.';
+                return;
+            }
+
+            // Try backend API first
+            fetch('http://localhost:5001/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.token) {
+                    const adminSession = { 
+                        email: data.admin.email, 
+                        name: data.admin.name, 
+                        role: 'admin',
+                        token: data.token
+                    };
+                    localStorage.setItem('adminSession', JSON.stringify(adminSession));
+                    window.location.href = 'admin.html';
+                    return;
+                }
+                throw new Error(data.message || 'Login failed');
+            })
+            .catch(error => {
+                console.error('Admin backend login failed:', error);
+                errorMsg.textContent = 'Admin login failed. Please start the backend and try again.';
+            });
+        }
+    </script>
+</body>
+</html>
